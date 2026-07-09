@@ -90,6 +90,110 @@
 - A [Supabase](https://supabase.com) project
 - (Optional) Vercel account for deployment
 
+
+
+
+
+
+
+2. Install dependencies
+bash
+npm install
+3. Set up environment variables
+Create a .env.local file in the root directory:
+
+env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+⚠️ Never commit this file – it’s already included in .gitignore.
+
+4. Database setup
+Run the following SQL scripts in your Supabase SQL Editor to create tables, RLS policies, storage buckets, and RPC functions.
+(A full migration script will be added soon.)
+
+5. Start the development server
+bash
+npm run dev
+Open http://localhost:3000 in your browser. The app will automatically reload when you make changes.
+
+📂 Project Structure (Key Folders)
+text
+chatapp/
+├── app/                  # Next.js App Router pages
+│   ├── (main)/           # Authenticated layout (world, private, groups, gallery, profile)
+│   │   ├── world/
+│   │   ├── private/
+│   │   ├── groups/
+│   │   ├── gallery/
+│   │   └── profile/
+│   ├── auth/             # Login, signup, OAuth callback, email confirmation
+│   └── layout.tsx        # Root layout (AuthProvider)
+├── components/           # Reusable UI components
+│   ├── chat/             # ChatInput, MessageReactions, GroupInfoPanel
+│   ├── layout/           # Sidebar, MobileNav
+│   └── providers/        # PresenceProvider, ReactionsPickerProvider
+├── lib/                  # Hooks, Supabase clients, utility functions
+│   ├── hooks/            # useAuth, useTypingIndicator, useTheme, useRealtimeChat
+│   └── supabase/         # Client & server clients
+├── public/               # Static assets (screenshots, logos, favicons)
+└── ...
+👨‍💻 Developer
+Zain Ali Shah
+Web Developer & Software Engineer
+
+🌐 Portfolio: zain-main-web.vercel.app
+
+📧 Email: zainshahz110s@gmail.com
+
+💼 GitHub: @zainshah3464
+
+🔗 LinkedIn: Zain Shah (replace with actual link)
+
+📸 Instagram: @zainshah3464
+
+🎥 YouTube: @Old Squad
+
+📄 License
+This project is licensed under the MIT License.
+
+text
+MIT License
+
+Copyright (c) 2026 Zain Ali Shah
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+🌟 Acknowledgements
+Supabase – real‑time backend & auth
+
+Framer Motion – animations
+
+Lucide Icons – beautiful icons
+
+Tailwind CSS – styling
+
+All open‑source libraries that made this project possible
+
+Made with ❤️ by Zain Ali Shah
+
+
+
+
 ### 1. Clone the repository
 
 ```bash
