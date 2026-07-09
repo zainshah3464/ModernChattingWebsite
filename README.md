@@ -62,7 +62,7 @@
 
 ### Private Chat  
 *Best personal messaging experience*  
-![Private Chat](public/Screenshot%202026-07-09%20204800.png)
+![Private Chat](public/og-image.png)
 
 ### 404 Page
 ![404 Page](public/Screenshot%202026-07-09%20204830.png)
@@ -137,17 +137,16 @@ chatapp/
 │   └── supabase/         # Client & server clients
 ├── public/               # Static assets (screenshots, logos, favicons)
 └── ...
+
 👨‍💻 Developer
 Zain Ali Shah
-Web Developer & Software Engineer
+Full Stack Developer & Software Engineer
 
 🌐 Portfolio: zain-main-web.vercel.app
 
 📧 Email: zainshahz110s@gmail.com
 
 💼 GitHub: @zainshah3464
-
-🔗 LinkedIn: Zain Shah (replace with actual link)
 
 📸 Instagram: @zainshah3464
 
@@ -178,6 +177,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
 🌟 Acknowledgements
 Supabase – real‑time backend & auth
 
