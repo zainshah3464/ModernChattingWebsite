@@ -4,11 +4,12 @@ import { useState, useEffect, useRef, Fragment, useMemo, useCallback } from 'rea
 import { useAuth } from '@/lib/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
-import { Globe, Users, Zap } from 'lucide-react'
+import { Globe, Users, Zap, X, Download, Trash2 } from 'lucide-react'
 import { useTypingIndicator } from '@/lib/hooks/useTypingIndicator'
 import ChatInput from '@/components/chat/ChatInput'
 import MessageReactions from '@/components/chat/MessageReactions'
 
+// ---- Types ----
 type WorldMessage = {
   id: number
   sender_id: string
@@ -23,27 +24,22 @@ type WorldMessage = {
   } | null
 }
 
-// ─────────────────────────────────────────
-//  Night Sky Background (Moon, Stars, Rain)
-// ─────────────────────────────────────────
+// ---- Night Sky Background (unchanged) ----
 const NightSkyBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationFrameRef = useRef<number>(0)
-
   const starsRef = useRef<Array<{ x: number; y: number; radius: number; brightness: number; speed: number }>>([])
   const rainDropsRef = useRef<Array<{ x: number; y: number; length: number; speed: number; opacity: number }>>([])
   const shootingStarsRef = useRef<Array<{ x: number; y: number; vx: number; vy: number; life: number; maxLife: number }>>([])
 
   const init = useCallback((width: number, height: number) => {
-    const starCount = 180
-    starsRef.current = Array.from({ length: starCount }, () => ({
+    starsRef.current = Array.from({ length: 180 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height * 0.8,
       radius: Math.random() * 2.5 + 0.5,
       brightness: Math.random() * 0.9 + 0.1,
       speed: Math.random() * 0.03 + 0.005
     }))
-
     rainDropsRef.current = Array.from({ length: 120 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
@@ -51,7 +47,6 @@ const NightSkyBackground = () => {
       speed: Math.random() * 5 + 3,
       opacity: Math.random() * 0.4 + 0.2
     }))
-
     shootingStarsRef.current = []
   }, [])
 
@@ -60,7 +55,6 @@ const NightSkyBackground = () => {
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-
     let w = canvas.width = canvas.offsetWidth
     let h = canvas.height = canvas.offsetHeight
     init(w, h)
@@ -136,14 +130,11 @@ const NightSkyBackground = () => {
       shootingStarsRef.current = shootingStarsRef.current.filter(s => {
         s.life -= 0.025
         if (s.life <= 0) return false
-        const alpha = s.life
-        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`
+        ctx.strokeStyle = `rgba(255,255,255,${s.life})`
         ctx.lineWidth = 2
         ctx.beginPath()
         ctx.moveTo(s.x, s.y)
-        const endX = s.x + s.vx * 12
-        const endY = s.y + s.vy * 12
-        ctx.lineTo(endX, endY)
+        ctx.lineTo(s.x + s.vx * 12, s.y + s.vy * 12)
         ctx.stroke()
         s.x += s.vx
         s.y += s.vy
@@ -178,7 +169,6 @@ const NightSkyBackground = () => {
       drawRain(ctx, time)
       animationFrameRef.current = requestAnimationFrame(animate)
     }
-
     animationFrameRef.current = requestAnimationFrame(animate)
 
     const handleResize = () => {
@@ -196,12 +186,85 @@ const NightSkyBackground = () => {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 }
 
+// ---- Image Lightbox Component ----
+const ImageLightbox = ({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) => {
+  const downloadImage = () => {
+    const link = document.createElement('a')
+    link.href = src
+    link.download = alt || 'downloaded-image'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        className="relative max-w-[90vw] max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute -top-4 -right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur transition"
+          aria-label="Close preview"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Image */}
+        <img
+          src={src}
+          alt={alt || 'Preview'}
+          className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+        />
+
+        {/* Download button */}
+        <button
+          onClick={downloadImage}
+          className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg transition"
+        >
+          <Download className="w-4 h-4" />
+          Download
+        </button>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ---- Main Page ----
 export default function WorldChatPage() {
   const [messages, setMessages] = useState<WorldMessage[]>([])
   const { user, profile } = useAuth()
   const bottomRef = useRef<HTMLDivElement>(null)
   const supabase = useMemo(() => createClient(), [])
 
+  // Image lightbox state
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [lightboxAlt, setLightboxAlt] = useState<string>('')
+
+  // Delete confirmation state
+  const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null)
+
+  // Typing indicator
   const channelName = 'world-chat-typing'
   const { typingUsers, emitTyping, emitStopTyping } = useTypingIndicator(
     channelName,
@@ -209,7 +272,7 @@ export default function WorldChatPage() {
     profile?.full_name || 'Someone'
   )
 
-  // Fetch initial messages
+  // ---- Fetch initial messages ----
   useEffect(() => {
     const fetchMessages = async () => {
       const { data } = await supabase
@@ -222,7 +285,7 @@ export default function WorldChatPage() {
     fetchMessages()
   }, [supabase])
 
-  // Real-time subscription
+  // ---- Real-time subscription (INSERT & DELETE) ----
   useEffect(() => {
     const channel = supabase
       .channel('world-chat')
@@ -234,6 +297,14 @@ export default function WorldChatPage() {
           fetchProfileForMessage(newMessage)
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'world_messages' },
+        (payload) => {
+          const deletedId = (payload.old as WorldMessage).id
+          setMessages((prev) => prev.filter((msg) => msg.id !== deletedId))
+        }
+      )
       .subscribe()
 
     const fetchProfileForMessage = async (msg: WorldMessage) => {
@@ -242,17 +313,20 @@ export default function WorldChatPage() {
         .select('full_name, avatar_url')
         .eq('id', msg.sender_id)
         .single()
-      setMessages(prev => [...prev, { ...msg, profiles: sender }])
+      setMessages((prev) => [...prev, { ...msg, profiles: sender }])
     }
 
-    return () => { channel.unsubscribe() }
+    return () => {
+      channel.unsubscribe()
+    }
   }, [supabase])
 
-  // Auto scroll
+  // ---- Auto scroll ----
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, typingUsers]) // typingUsers change par bhi scroll hoga
+  }, [messages, typingUsers])
 
+  // ---- Send message ----
   const handleSend = async (payload: {
     content: string
     file?: { url: string; type: string; thumbnail_url?: string }
@@ -260,7 +334,7 @@ export default function WorldChatPage() {
     if (!user) return
     const msgData = {
       sender_id: user.id,
-      content: payload.content || null,
+      content: payload.content || '',
       file_url: payload.file?.url || null,
       file_type: payload.file?.type || null,
       thumbnail_url: payload.file?.thumbnail_url || null,
@@ -270,12 +344,29 @@ export default function WorldChatPage() {
     else emitStopTyping()
   }
 
+  // ---- Delete message ----
+  const handleDeleteMessage = async (messageId: number) => {
+    const { error } = await supabase.from('world_messages').delete().eq('id', messageId)
+    if (error) {
+      console.error('Delete failed:', error)
+      return
+    }
+    // Optimistic removal (real-time listener will sync for others)
+    setMessages((prev) => prev.filter((msg) => msg.id !== messageId))
+    setDeleteMessageId(null)
+  }
+
+  // ---- Cleanup typing on unmount ----
   useEffect(() => {
-    return () => { emitStopTyping() }
+    return () => {
+      emitStopTyping()
+    }
   }, [emitStopTyping])
 
-  // Build a map of sender profiles for typing indicator
-  const [typingProfiles, setTypingProfiles] = useState<Record<string, { full_name: string | null; avatar_url: string | null }>>({})
+  // ---- Typing profiles ----
+  const [typingProfiles, setTypingProfiles] = useState<
+    Record<string, { full_name: string | null; avatar_url: string | null }>
+  >({})
 
   useEffect(() => {
     const userIds = Array.from(typingUsers.keys())
@@ -287,17 +378,21 @@ export default function WorldChatPage() {
         .in('id', userIds)
       if (data) {
         const map: Record<string, any> = {}
-        data.forEach(p => { map[p.id] = p })
+        data.forEach((p) => {
+          map[p.id] = p
+        })
         setTypingProfiles(map)
       }
     }
     fetchProfiles()
   }, [typingUsers, supabase])
 
+  // ---- Date tracking ----
   let lastDate = ''
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#0b0f19]">
+      {/* Custom scrollbar + input background fix */}
       <style>{`
         .scrollbar-thin::-webkit-scrollbar { width: 4px; }
         .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
@@ -305,7 +400,6 @@ export default function WorldChatPage() {
           background: rgba(255,255,255,0.1); 
           border-radius: 10px; 
         }
-        /* Ensure ChatInput's internal background is transparent */
         .chat-input-wrapper [class*="bg-"] {
           background: transparent !important;
         }
@@ -314,7 +408,7 @@ export default function WorldChatPage() {
       <NightSkyBackground />
 
       <div className="relative z-10 flex flex-col h-full">
-        {/* ---- HEADER (fully transparent, no blur, no border) ---- */}
+        {/* ---- HEADER ---- */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -348,13 +442,15 @@ export default function WorldChatPage() {
           </motion.div>
         </motion.div>
 
-        {/* ---- MESSAGES (typing indicator inside) ---- */}
+        {/* ---- MESSAGES ---- */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
           <LayoutGroup>
             <AnimatePresence mode="popLayout">
               {messages.map((msg) => {
                 const msgDate = new Date(msg.created_at).toLocaleDateString([], {
-                  day: 'numeric', month: 'short', year: 'numeric'
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
                 })
                 const showDate = msgDate !== lastDate
                 if (showDate) lastDate = msgDate
@@ -363,6 +459,15 @@ export default function WorldChatPage() {
                 const senderProfile = isMe
                   ? { full_name: profile?.full_name || null, avatar_url: profile?.avatar_url || null }
                   : msg.profiles
+
+                // Determine if message has an image for lightbox
+                const isImage = msg.file_type === 'image'
+                const openLightbox = () => {
+                  if (isImage && msg.file_url) {
+                    setLightboxSrc(msg.file_url)
+                    setLightboxAlt(msg.content || 'Image')
+                  }
+                }
 
                 return (
                   <Fragment key={msg.id}>
@@ -388,16 +493,24 @@ export default function WorldChatPage() {
                       className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                       whileHover={{ scale: 1.01 }}
                     >
-                      <div className={`flex gap-3 max-w-[85%] lg:max-w-[60%] ${isMe ? 'flex-row-reverse' : ''}`}>
+                      <div
+                        className={`flex gap-3 max-w-[85%] md:max-w-[70%] lg:max-w-[60%] ${
+                          isMe ? 'flex-row-reverse' : ''
+                        }`}
+                      >
+                        {/* Avatar */}
                         <motion.div
                           whileHover={{ scale: 1.1, rotate: 5 }}
                           className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500 to-purple-600 ring-2 ring-white/20 shadow-lg"
                         >
                           {senderProfile?.avatar_url ? (
                             <img
-                              src={senderProfile.avatar_url} alt=""
+                              src={senderProfile.avatar_url}
+                              alt=""
                               className="w-full h-full object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              onError={(e) => {
+                                ;(e.target as HTMLImageElement).style.display = 'none'
+                              }}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm">
@@ -405,46 +518,109 @@ export default function WorldChatPage() {
                             </div>
                           )}
                         </motion.div>
-                        <div className="flex flex-col">
+
+                        {/* Message body */}
+                        <div className="flex flex-col relative group">
                           {!isMe && (
                             <motion.p
-                              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
                               transition={{ delay: 0.2 }}
                               className="text-xs text-gray-400 mb-1 ml-1 font-medium"
                             >
                               {senderProfile?.full_name || 'Unknown'}
                             </motion.p>
                           )}
+
                           <motion.div
-                            className={`px-4 py-2.5 rounded-2xl text-sm relative group ${
+                            className={`px-4 py-2.5 rounded-2xl text-sm ${
                               isMe
                                 ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-br-md shadow-[0_4px_12px_rgba(59,130,246,0.3)]'
                                 : 'bg-white/10 backdrop-blur-sm text-white rounded-bl-md border border-white/10 hover:border-white/20 shadow-[0_4px_12px_rgba(255,255,255,0.05)]'
                             }`}
                             whileHover={{ scale: 1.02, y: -2 }}
                             transition={{ type: 'spring', stiffness: 400 }}
+                            onContextMenu={(e) => {
+                              // Long-press (touch & hold) on mobile triggers context menu
+                              if (isMe) {
+                                e.preventDefault();           // stop the default browser menu
+                                setDeleteMessageId(msg.id);   // open delete confirmation modal
+                              }
+                            }}
                           >
-                            {msg.content}
+                            {/* Text content */}
+                            {msg.content && <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
+
+                            {/* File attachments */}
                             {msg.file_url && (
-                              <div className="mt-2">
-                                {msg.file_type === 'image' ? (
-                                  <img src={msg.file_url} alt="" className="max-w-xs rounded-lg" />
-                                ) : msg.file_type === 'video' ? (
-                                  <video src={msg.file_url} controls className="max-w-xs rounded-lg" />
-                                ) : msg.file_type === 'audio' ? (
+                              <div className={`mt-2 ${msg.content ? 'border-t border-white/10 pt-2' : ''}`}>
+                                {isImage && (
+                                  <div
+                                    onClick={openLightbox}
+                                    className="cursor-pointer group/image relative overflow-hidden rounded-xl"
+                                  >
+                                    <img
+                                      src={msg.thumbnail_url || msg.file_url}
+                                      alt={msg.content || 'Image'}
+                                      className="max-w-full max-h-64 object-contain rounded-xl hover:scale-105 transition-transform duration-300"
+                                      loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 flex items-center justify-center transition">
+                                      <span className="text-white opacity-0 group-hover/image:opacity-100 text-xs bg-black/50 px-2 py-1 rounded-full">
+                                        Click to view
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {msg.file_type === 'video' && (
+                                  <video
+                                    src={msg.file_url}
+                                    controls
+                                    className="max-w-full max-h-64 rounded-xl"
+                                    preload="metadata"
+                                  />
+                                )}
+
+                                {msg.file_type === 'audio' && (
                                   <audio src={msg.file_url} controls className="max-w-full" />
-                                ) : (
-                                  <a href={msg.file_url} target="_blank" className="text-blue-400 underline text-sm break-all">
+                                )}
+
+                                {!isImage && msg.file_type !== 'video' && msg.file_type !== 'audio' && (
+                                  <a
+                                    href={msg.file_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-400 underline text-sm break-all flex items-center gap-1"
+                                  >
                                     📎 {msg.file_url.split('/').pop()}
                                   </a>
                                 )}
                               </div>
                             )}
-                            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-r from-blue-400/10 to-purple-400/10" />
+
+                            {/* Delete button (desktop hover) – remains unchanged */}
+                            {isMe && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setDeleteMessageId(msg.id)
+                                }}
+                                className="absolute -top-2 -right-2 p-1 bg-red-500/90 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
+                                aria-label="Delete message"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </motion.div>
+
+                          {/* Timestamp + reactions */}
                           <div className="flex items-center gap-1 mt-1">
                             <p className="text-[10px] text-gray-500 ml-1">
-                              {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {new Date(msg.created_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
                             </p>
                             <MessageReactions messageId={msg.id} isMe={isMe} />
                           </div>
@@ -455,7 +631,7 @@ export default function WorldChatPage() {
                 )
               })}
 
-              {/* ---- TYPING INDICATOR as message bubbles ---- */}
+              {/* ---- TYPING INDICATOR ---- */}
               {Array.from(typingUsers.values()).map((tu) => {
                 const senderProfile = typingProfiles[tu.userId]
                 return (
@@ -475,7 +651,9 @@ export default function WorldChatPage() {
                             src={senderProfile.avatar_url}
                             alt=""
                             className="w-full h-full object-cover"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            onError={(e) => {
+                              ;(e.target as HTMLImageElement).style.display = 'none'
+                            }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm">
@@ -504,7 +682,7 @@ export default function WorldChatPage() {
           <div ref={bottomRef} />
         </div>
 
-        {/* ---- CHAT INPUT (fully transparent, correct gap) ---- */}
+        {/* ---- CHAT INPUT ---- */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -512,10 +690,68 @@ export default function WorldChatPage() {
           className="sticky bottom-0 bg-transparent z-10 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:pb-2"
         >
           <div className="chat-input-wrapper">
-            <ChatInput onSend={handleSend} onTypingStart={emitTyping} onTypingStop={emitStopTyping} />
+            <ChatInput
+              onSend={handleSend}
+              onTypingStart={emitTyping}
+              onTypingStop={emitStopTyping}
+            />
           </div>
         </motion.div>
       </div>
+
+      {/* ---- Lightbox Modal ---- */}
+      <AnimatePresence>
+        {lightboxSrc && (
+          <ImageLightbox
+            src={lightboxSrc}
+            alt={lightboxAlt}
+            onClose={() => {
+              setLightboxSrc(null)
+              setLightboxAlt('')
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ---- Delete Confirmation Modal ---- */}
+      <AnimatePresence>
+        {deleteMessageId !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            onClick={() => setDeleteMessageId(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold text-white mb-2">Delete message?</h3>
+              <p className="text-gray-400 text-sm mb-6">
+                This action cannot be undone. The message will be removed for everyone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setDeleteMessageId(null)}
+                  className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteMessage(deleteMessageId)}
+                  className="px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

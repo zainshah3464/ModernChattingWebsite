@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
-import { Loader2, ArrowLeft, Check, CheckCheck } from 'lucide-react'
+import { Loader2, ArrowLeft, Check, CheckCheck, X, Download, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { usePresence } from '@/components/providers/PresenceProvider'
 import { useTypingIndicator } from '@/lib/hooks/useTypingIndicator'
@@ -181,6 +181,69 @@ const VideoBackground = ({ onLoaded }: { onLoaded: () => void }) => {
   )
 }
 
+// ─────────────────────────────────────────
+//  🖼️ Image Lightbox (same as World Chat)
+// ─────────────────────────────────────────
+const ImageLightbox = ({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) => {
+  const downloadImage = () => {
+    const link = document.createElement('a')
+    link.href = src
+    link.download = alt || 'downloaded-image'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        className="relative max-w-[90vw] max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute -top-4 -right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur transition"
+          aria-label="Close preview"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <img
+          src={src}
+          alt={alt || 'Preview'}
+          className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+        />
+        <button
+          onClick={downloadImage}
+          className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-full shadow-lg transition"
+        >
+          <Download className="w-4 h-4" />
+          Download
+        </button>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─────────────────────────────────────────
+//  💬 Private Chat Page
+// ─────────────────────────────────────────
 export default function PrivateChatPage() {
   const { userId } = useParams<{ userId: string }>()
   const { user, profile: myProfile } = useAuth()
@@ -199,6 +262,11 @@ export default function PrivateChatPage() {
   const [recipient, setRecipient] = useState<RecipientProfile | null>(null)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  // ── Lightbox & Delete states ──
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [lightboxAlt, setLightboxAlt] = useState<string>('')
+  const [deleteMessageId, setDeleteMessageId] = useState<number | null>(null)
 
   const isOnline = onlineUsers.has(userId)
   const isRecipientTyping = typingUsers.has(userId)
@@ -262,11 +330,12 @@ export default function PrivateChatPage() {
 
   useEffect(() => { markAsRead() }, [markAsRead])
 
-  // Real-time subscription
+  // ── Real‑time subscription (INSERT, UPDATE, DELETE) ──
   useEffect(() => {
     if (!user || !userId) return
     const channel = supabase
       .channel(`private-${user.id}-${userId}`)
+      // Insert from me
       .on(
         'postgres_changes',
         {
@@ -279,6 +348,7 @@ export default function PrivateChatPage() {
           setMessages((prev) => [...prev, payload.new as PrivateMessage])
         }
       )
+      // Insert from other
       .on(
         'postgres_changes',
         {
@@ -291,6 +361,7 @@ export default function PrivateChatPage() {
           setMessages((prev) => [...prev, payload.new as PrivateMessage])
         }
       )
+      // Update (read receipts)
       .on(
         'postgres_changes',
         {
@@ -321,6 +392,33 @@ export default function PrivateChatPage() {
           )
         }
       )
+      // ── NEW: Delete listeners (both directions) ──
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'private_messages',
+          filter: `sender_id=eq.${user.id},receiver_id=eq.${userId}`,
+        },
+        (payload) => {
+          const deletedId = (payload.old as PrivateMessage).id
+          setMessages((prev) => prev.filter((msg) => msg.id !== deletedId))
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'private_messages',
+          filter: `sender_id=eq.${userId},receiver_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const deletedId = (payload.old as PrivateMessage).id
+          setMessages((prev) => prev.filter((msg) => msg.id !== deletedId))
+        }
+      )
       .subscribe()
 
     return () => { channel.unsubscribe() }
@@ -347,6 +445,18 @@ export default function PrivateChatPage() {
     }
     const { error } = await supabase.from('private_messages').insert(msgData)
     if (!error) emitStopTyping()
+  }
+
+  // ── NEW: Delete message ──
+  const handleDeleteMessage = async (messageId: number) => {
+    const { error } = await supabase.from('private_messages').delete().eq('id', messageId)
+    if (error) {
+      console.error('Delete failed:', error)
+      return
+    }
+    // Optimistic removal (real‑time listener will sync for the other user)
+    setMessages((prev) => prev.filter((msg) => msg.id !== messageId))
+    setDeleteMessageId(null)
   }
 
   useEffect(() => {
@@ -438,6 +548,14 @@ export default function PrivateChatPage() {
                   ? { full_name: myProfile?.full_name || null, avatar_url: myProfile?.avatar_url || null }
                   : { full_name: recipient.full_name, avatar_url: recipient.avatar_url }
 
+                const isImage = msg.file_type === 'image'
+                const openLightbox = () => {
+                  if (isImage && msg.file_url) {
+                    setLightboxSrc(msg.file_url)
+                    setLightboxAlt(msg.content || 'Image')
+                  }
+                }
+
                 return (
                   <Fragment key={msg.id}>
                     {showDate && (
@@ -462,7 +580,7 @@ export default function PrivateChatPage() {
                       className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                       whileHover={{ scale: 1.01 }}
                     >
-                      <div className={`flex gap-3 max-w-[85%] lg:max-w-[60%] ${isMe ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex gap-3 max-w-[85%] md:max-w-[70%] lg:max-w-[60%] ${isMe ? 'flex-row-reverse' : ''}`}>
                         <motion.div
                           whileHover={{ scale: 1.08, rotate: 5 }}
                           className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-amber-400 to-orange-400 ring-1 ring-white/20 shadow-lg"
@@ -474,7 +592,7 @@ export default function PrivateChatPage() {
                           )}
                         </motion.div>
 
-                        <div>
+                        <div className="relative group">
                           {!isMe && (
                             <motion.p
                               initial={{ opacity: 0 }}
@@ -487,30 +605,70 @@ export default function PrivateChatPage() {
                           )}
                           <motion.div
                             whileHover={{ scale: 1.02, y: -2 }}
-                            className={`px-4 py-2.5 rounded-2xl text-sm relative group ${
+                            className={`px-4 py-2.5 rounded-2xl text-sm relative ${
                               isMe
                                 ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-br-md shadow-[0_4px_15px_rgba(251,191,36,0.4)]'
                                 : 'bg-white/10 backdrop-blur-md text-white rounded-bl-md border border-white/10 hover:border-white/20 shadow-lg'
                             }`}
+                            onContextMenu={(e) => {
+                              if (isMe) {
+                                e.preventDefault();
+                                setDeleteMessageId(msg.id);
+                              }
+                            }}
                           >
                             {msg.content}
+
+                            {/* Attachments – improved responsiveness */}
                             {msg.file_url && (
-                              <div className="mt-2">
-                                {msg.file_type === 'image' ? (
-                                  <img src={msg.file_url} alt="" className="max-w-xs rounded-lg" />
-                                ) : msg.file_type === 'video' ? (
-                                  <video src={msg.file_url} controls className="max-w-xs rounded-lg" />
-                                ) : msg.file_type === 'audio' ? (
+                              <div className={`mt-2 ${msg.content ? 'border-t border-white/10 pt-2' : ''}`}>
+                                {isImage && (
+                                  <div onClick={openLightbox} className="cursor-pointer group/image relative overflow-hidden rounded-xl">
+                                    <img
+                                      src={msg.thumbnail_url || msg.file_url}
+                                      alt={msg.content || 'Image'}
+                                      className="max-w-full max-h-64 object-contain rounded-xl hover:scale-105 transition-transform duration-300"
+                                      loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 flex items-center justify-center transition">
+                                      <span className="text-white opacity-0 group-hover/image:opacity-100 text-xs bg-black/50 px-2 py-1 rounded-full">
+                                        Click to view
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {msg.file_type === 'video' && (
+                                  <video src={msg.file_url} controls className="max-w-full max-h-64 rounded-xl" preload="metadata" />
+                                )}
+
+                                {msg.file_type === 'audio' && (
                                   <audio src={msg.file_url} controls className="max-w-full" />
-                                ) : (
-                                  <a href={msg.file_url} target="_blank" className="text-amber-300 underline text-sm break-all">
+                                )}
+
+                                {!isImage && msg.file_type !== 'video' && msg.file_type !== 'audio' && (
+                                  <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="text-amber-300 underline text-sm break-all">
                                     📎 {msg.file_url.split('/').pop()}
                                   </a>
                                 )}
                               </div>
                             )}
-                            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-r from-amber-400/10 to-orange-400/10" />
+
+                            {/* Desktop delete icon (only for own messages) */}
+                            {isMe && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteMessageId(msg.id);
+                                }}
+                                className="absolute -top-2 -right-2 p-1 bg-red-500/90 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
+                                aria-label="Delete message"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </motion.div>
+
                           <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
                             <p className="text-[10px] text-white/50">
                               {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -589,6 +747,60 @@ export default function PrivateChatPage() {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* ── Lightbox Modal ── */}
+      <AnimatePresence>
+        {lightboxSrc && (
+          <ImageLightbox
+            src={lightboxSrc}
+            alt={lightboxAlt}
+            onClose={() => {
+              setLightboxSrc(null)
+              setLightboxAlt('')
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Delete Confirmation Modal ── */}
+      <AnimatePresence>
+        {deleteMessageId !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            onClick={() => setDeleteMessageId(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold text-white mb-2">Delete message?</h3>
+              <p className="text-gray-400 text-sm mb-6">
+                This action cannot be undone. The message will be removed for both you and the recipient.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setDeleteMessageId(null)}
+                  className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteMessage(deleteMessageId)}
+                  className="px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
