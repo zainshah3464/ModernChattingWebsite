@@ -43,6 +43,7 @@ export const metadata: Metadata = {
         url: "/og-image.png", // 1200x630 PNG
         width: 1200,
         height: 630,
+        type: "image/png",
         alt: "Zain Chat – Modern Real‑time Chat",
       },
     ],
