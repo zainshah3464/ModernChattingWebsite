@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/lib/hooks/useAuth"
+import Script from "next/script"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/og-image.png", // 1200x630 PNG
+        url: "/og-image.png?v=3", // cache-busting for WhatsApp
         width: 1200,
         height: 630,
         type: "image/png",
@@ -51,11 +52,11 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    site: "ZAIN_ALI_SHAH_",
-    creator: "ZAIN_ALI_SHAH_",
+    site: "@ZAIN_ALI_SHAH_",
+    creator: "@ZAIN_ALI_SHAH_",
     title,
     description,
-    images: ["/og-image.png"],
+    images: ["/og-image.png?v=3"],
   },
 
   icons: {
@@ -92,9 +93,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
+  // Use the GA ID from environment variables (you set this in Vercel)
+  const GA_ID = process.env.NEXT_PUBLIC_GA_ID
+
   return (
     <html lang="en">
       <head>
@@ -106,6 +110,24 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <AuthProvider>{children}</AuthProvider>
+
+        {/* Google Analytics – only if ID is provided */}
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   )
