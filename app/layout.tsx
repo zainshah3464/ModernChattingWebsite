@@ -7,6 +7,8 @@ import Script from "next/script"
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
 const title = "Zain Chat – Modern Real‑time Messaging"
+const description =
+  "A beautiful, cosmic real‑time chat app built with Next.js, Supabase & love. Connect with the world, private chats, groups & more."
 
 export const metadata: Metadata = {
   title: {
@@ -39,7 +41,7 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/og-image.png?v=3", // cache-busting for WhatsApp
+        url: "/og-image.png?v=4", // cache-busting for WhatsApp
         width: 1200,
         height: 630,
         type: "image/png",
@@ -54,7 +56,7 @@ export const metadata: Metadata = {
     creator: "@ZAIN_ALI_SHAH_",
     title,
     description,
-    images: ["/og-image.png?v=3"],
+    images: ["/og-image.png?v=4"],
   },
 
   icons: {
@@ -94,7 +96,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Use the GA ID from environment variables (you set this in Vercel)
   const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
   return (
@@ -109,7 +110,6 @@ export default function RootLayout({
       >
         <AuthProvider>{children}</AuthProvider>
 
-        {/* Google Analytics – only if ID is provided */}
         {GA_ID && (
           <>
             <Script
