@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"], display: "swap" })
 
 const title = "Zain Chat – Modern Real‑time Messaging"
 const description =
-  "A beautiful, cosmic real‑time chat app built with Next.js, Supabase & love. Connect with the world, private chats, groups & more."
+  "Modern real‑time chat app built with Next.js"
 
 export const metadata: Metadata = {
   title: {
