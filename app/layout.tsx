@@ -6,7 +6,7 @@ import Script from "next/script"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
-const title = "Zain Chat – Modern Real‑time Messaging"
+const title = "Zain Chat"
 const description =
   "Modern real‑time chat app built with Next.js"
 
