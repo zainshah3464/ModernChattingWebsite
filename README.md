@@ -67,7 +67,6 @@
 ### 404 Page
 ![404 Page](public/Screenshot%202026-07-09%20204830.png)
 
-> **Note:** Some screenshots may not be present in the repository – place your own inside `public/` and update the paths above.
 
 ---
 
