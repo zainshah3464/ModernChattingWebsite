@@ -131,18 +131,14 @@ SOFTWARE.
 
 ## 🌟 Acknowledgements
 ---
-- |**Supabase** – |real‑time backend & auth |
-  |------------|---------------|
-- |**Framer Motion** – |animations |
-  |------------|---------------|
-- |**Lucide Icons** – |beautiful icons |
-  |------------|---------------|
-- |**Tailwind CSS** – |styling |
-  |------------|---------------|
+- **Supabase** – real‑time backend & auth 
+- **Framer Motion** – animations 
+- **Lucide Icons** – beautiful icons 
+- **Tailwind CSS** – styling 
  *All open‑source libraries that made this project possible*
  
 ---
-### <p align="center"> Made with ❤️ by Zain Ali Shah </p>
+### <p align="center"> Made by Zain Ali Shah </p>
 ---
 
 ### 1. Clone the repository
