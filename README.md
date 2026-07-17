@@ -93,18 +93,17 @@
 ---
 
 ## 👨‍💻 Developer
-*Zain Ali Shah*
-**Full Stack Developer & Software Engineer**
+**Zain Ali Shah**
+*Full Stack Developer & Software Engineer*
 
-**🌐 Portfolio:** zain-main-web.vercel.app
-
+- **🌐 Portfolio:** zain-main-web.vercel.app
 - **📧 Email:** zainshahz110s@gmail.com
 -  **💼 GitHub:** @zainshah3464
 -  **📸 Instagram:** @zainshah3464
 
-## 📄 License
+### 📄 License
 
-T*his project is licensed under the MIT License.*
+*This project is licensed under the MIT License.*
 
 **MIT License**
 
@@ -130,7 +129,7 @@ SOFTWARE.
 
 ---
 
-## 🌟 Acknowledgements
+### 🌟 Acknowledgements
 
 - **Supabase** – real‑time backend & auth
 - **Framer Motion** – animations
@@ -140,7 +139,7 @@ SOFTWARE.
  *All open‑source libraries that made this project possible*
  
 ---
-## Made with ❤️ by Zain Ali Shah
+### Made with ❤️ by Zain Ali Shah
 ---
 
 ### 1. Clone the repository
@@ -149,11 +148,11 @@ SOFTWARE.
 git clone https://github.com/zainshah3464/ModernChattingWebsite.git
 cd ModernChattingWebsite
 ```
-## 2. Install dependencies
+### 2. Install dependencies
 ```bash
 npm install
 ```
-## 3. Set up environment variables
+### 3. Set up environment variables
 *Create a .env.local file in the root directory:*
 
 **env**
@@ -162,17 +161,17 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ⚠️ Never commit this file – it’s already included in .gitignore.
 ```
-## 4. Database setup
+### 4. Database setup
 Run the following SQL scripts in your Supabase SQL Editor to create tables, RLS policies, storage buckets, and RPC functions.
 *(A full migration script will be added soon.)*
 
-## 5. Start the development server
+### 5. Start the development server
 ```bash
 npm run dev
 Open http://localhost:3000 in your browser. The app will automatically reload when you make changes.
 ```
 
-## 📂 Project Structure *(Key Folders)*
+### 📂 Project Structure *(Key Folders)*
 ```
 chatapp/
 ├── app/                  # Next.js App Router pages
