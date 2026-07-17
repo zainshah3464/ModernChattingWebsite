@@ -130,7 +130,7 @@ SOFTWARE.
 ---
 
 ## 🌟 Acknowledgements
-- |---------------|-------------------------|
+  |------------|---------------|
 - |**Supabase** – |real‑time backend & auth |
 - |**Framer Motion** – |animations |
 - |**Lucide Icons** – |beautiful icons |
