@@ -92,7 +92,7 @@
 
 ---
 
-## 👨‍💻 Developer
+### 👨‍💻 Developer
 **Zain Ali Shah**
 *Full Stack Developer & Software Engineer*
 
