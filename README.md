@@ -90,74 +90,25 @@
 - A [Supabase](https://supabase.com) project
 - (Optional) Vercel account for deployment
 
-### 1. Clone the repository
+---
 
-```bash
-git clone https://github.com/zainshah3464/ModernChattingWebsite.git
-cd ModernChattingWebsite
-2. Install dependencies
-bash
-npm install
-3. Set up environment variables
-Create a .env.local file in the root directory:
+## 👨‍💻 Developer
+*Zain Ali Shah*
+**Full Stack Developer & Software Engineer**
 
-env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-⚠️ Never commit this file – it’s already included in .gitignore.
+**🌐 Portfolio:** zain-main-web.vercel.app
 
-4. Database setup
-Run the following SQL scripts in your Supabase SQL Editor to create tables, RLS policies, storage buckets, and RPC functions.
-(A full migration script will be added soon.)
+- **📧 Email:** zainshahz110s@gmail.com
+-  **💼 GitHub:** @zainshah3464
+-  **📸 Instagram:** @zainshah3464
 
-5. Start the development server
-bash
-npm run dev
-Open http://localhost:3000 in your browser. The app will automatically reload when you make changes.
+## 📄 License
 
-📂 Project Structure (Key Folders)
-text
-chatapp/
-├── app/                  # Next.js App Router pages
-│   ├── (main)/           # Authenticated layout (world, private, groups, gallery, profile)
-│   │   ├── world/
-│   │   ├── private/
-│   │   ├── groups/
-│   │   ├── gallery/
-│   │   └── profile/
-│   ├── auth/             # Login, signup, OAuth callback, email confirmation
-│   └── layout.tsx        # Root layout (AuthProvider)
-├── components/           # Reusable UI components
-│   ├── chat/             # ChatInput, MessageReactions, GroupInfoPanel
-│   ├── layout/           # Sidebar, MobileNav
-│   └── providers/        # PresenceProvider, ReactionsPickerProvider
-├── lib/                  # Hooks, Supabase clients, utility functions
-│   ├── hooks/            # useAuth, useTypingIndicator, useTheme, useRealtimeChat
-│   └── supabase/         # Client & server clients
-├── public/               # Static assets (screenshots, logos, favicons)
-└── ...
+T*his project is licensed under the MIT License.*
 
-👨‍💻 Developer
-Zain Ali Shah
-Full Stack Developer & Software Engineer
+**MIT License**
 
-🌐 Portfolio: zain-main-web.vercel.app
-
-📧 Email: zainshahz110s@gmail.com
-
-💼 GitHub: @zainshah3464
-
-📸 Instagram: @zainshah3464
-
-🎥 YouTube: @Old Squad
-
-📄 License
-This project is licensed under the MIT License.
-
-text
-MIT License
-
-Copyright (c) 2026 Zain Ali Shah
+*Copyright (c) 2026 Zain Ali Shah*
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -177,54 +128,69 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+---
 
-🌟 Acknowledgements
-Supabase – real‑time backend & auth
+## 🌟 Acknowledgements
 
-Framer Motion – animations
+- **Supabase** – real‑time backend & auth
+- **Framer Motion** – animations
+- **Lucide Icons** – beautiful icons
+- **Tailwind CSS** – styling
 
-Lucide Icons – beautiful icons
+ *All open‑source libraries that made this project possible*
+ 
+---
+## Made with ❤️ by Zain Ali Shah
+---
 
-Tailwind CSS – styling
-
-All open‑source libraries that made this project possible
-
-Made with ❤️ by Zain Ali Shah
-
-
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
+### 1. Clone the repository
 
 ```bash
+git clone https://github.com/zainshah3464/ModernChattingWebsite.git
+cd ModernChattingWebsite
+```
+## 2. Install dependencies
+```bash
+npm install
+```
+## 3. Set up environment variables
+*Create a .env.local file in the root directory:*
+
+**env**
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+⚠️ Never commit this file – it’s already included in .gitignore.
+```
+## 4. Database setup
+Run the following SQL scripts in your Supabase SQL Editor to create tables, RLS policies, storage buckets, and RPC functions.
+*(A full migration script will be added soon.)*
+
+## 5. Start the development server
+```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Open http://localhost:3000 in your browser. The app will automatically reload when you make changes.
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📂 Project Structure *(Key Folders)*
+```
+chatapp/
+├── app/                  # Next.js App Router pages
+│   ├── (main)/           # Authenticated layout (world, private, groups, gallery, profile)
+│   │   ├── world/
+│   │   ├── private/
+│   │   ├── groups/
+│   │   ├── gallery/
+│   │   └── profile/
+│   ├── auth/             # Login, signup, OAuth callback, email confirmation
+│   └── layout.tsx        # Root layout (AuthProvider)
+├── components/           # Reusable UI components
+│   ├── chat/             # ChatInput, MessageReactions, GroupInfoPanel
+│   ├── layout/           # Sidebar, MobileNav
+│   └── providers/        # PresenceProvider, ReactionsPickerProvider
+├── lib/                  # Hooks, Supabase clients, utility functions
+│   ├── hooks/            # useAuth, useTypingIndicator, useTheme, useRealtimeChat
+│   └── supabase/         # Client & server clients
+├── public/               # Static assets (screenshots, logos, favicons)
+└── ...
+```
